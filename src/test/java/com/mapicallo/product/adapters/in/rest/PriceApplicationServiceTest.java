@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class PriceApplicationServiceTest {
 
@@ -31,29 +31,36 @@ class PriceApplicationServiceTest {
 
     @Test
     void test1() {
-        // Test para la petición a las 10:00 del día 14
+        // Datos simulados
         Long brandId = 1L;
         Long productId = 35455L;
         LocalDateTime applicationDate = LocalDateTime.parse("2020-06-14T10:00:00");
 
-        Price mockPrice = new Price();
-        mockPrice.setBrandId(brandId);
-        mockPrice.setProductId(productId);
-        mockPrice.setPrice(35.50);
-        mockPrice.setStartDate(LocalDateTime.parse("2020-06-14T00:00:00"));
-        mockPrice.setEndDate(LocalDateTime.parse("2020-12-31T23:59:59"));
+        // Objeto Price simulado
+        Price mockPrice = Price.builder()
+                .brandId(brandId)
+                .productId(productId)
+                .startDate(LocalDateTime.parse("2020-06-14T00:00:00"))
+                .endDate(LocalDateTime.parse("2020-12-31T23:59:59"))
+                .priceList(1)
+                .priority(0)
+                .price(35.50)
+                .currency("EUR")
+                .build();
 
-        // Configuración del mock
-        when(priceRepository.findPrice(brandId, productId, applicationDate)).thenReturn(Optional.of(mockPrice));
+        // Configurar comportamiento del mock
+        when(priceRepository.findPrice(brandId, productId, applicationDate))
+                .thenReturn(Optional.of(mockPrice));
 
-        // Ejecución del método
-        Optional<Price> result = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        // Ejecutar el método
+        Optional<Price> result = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
 
-        // Verificación
+        // Verificar resultados
         assertTrue(result.isPresent());
         assertEquals(mockPrice, result.get());
-        assertEquals(35.50, result.get().getPrice());
+        verify(priceRepository, times(1)).findPrice(brandId, productId, applicationDate);
     }
+
 
     @Test
     void test2() {
@@ -73,7 +80,7 @@ class PriceApplicationServiceTest {
         when(priceRepository.findPrice(brandId, productId, applicationDate)).thenReturn(Optional.of(mockPrice));
 
         // Ejecución del método
-        Optional<Price> result = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        Optional<Price> result = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
 
         // Verificación
         assertTrue(result.isPresent());
@@ -99,7 +106,7 @@ class PriceApplicationServiceTest {
         when(priceRepository.findPrice(brandId, productId, applicationDate)).thenReturn(Optional.of(mockPrice));
 
         // Ejecución del método
-        Optional<Price> result = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        Optional<Price> result = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
 
         // Verificación
         assertTrue(result.isPresent());
@@ -125,7 +132,7 @@ class PriceApplicationServiceTest {
         when(priceRepository.findPrice(brandId, productId, applicationDate)).thenReturn(Optional.of(mockPrice));
 
         // Ejecución del método
-        Optional<Price> result = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        Optional<Price> result = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
 
         // Verificación
         assertTrue(result.isPresent());
@@ -151,7 +158,7 @@ class PriceApplicationServiceTest {
         when(priceRepository.findPrice(brandId, productId, applicationDate)).thenReturn(Optional.of(mockPrice));
 
         // Ejecución del método
-        Optional<Price> result = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        Optional<Price> result = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
 
         // Verificación
         assertTrue(result.isPresent());
