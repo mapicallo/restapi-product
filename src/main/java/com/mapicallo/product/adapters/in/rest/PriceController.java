@@ -22,7 +22,7 @@ public class PriceController {
     public ResponseEntity<Price> getPrice(@RequestParam Long brandId,
                                           @RequestParam Long productId,
                                           @RequestParam LocalDateTime applicationDate) {
-        Optional<Price> price = priceApplicationService.getPrice(brandId, productId, applicationDate);
+        Optional<Price> price = Optional.ofNullable(priceApplicationService.getPrice(brandId, productId, applicationDate));
         // Si el precio no se encuentra, devolvemos un código 404 (NOT_FOUND)
         return price.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 

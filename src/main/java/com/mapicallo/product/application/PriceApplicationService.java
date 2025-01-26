@@ -1,5 +1,6 @@
 package com.mapicallo.product.application;
 
+import com.mapicallo.product.domain.exceptions.PriceNotFoundException;
 import com.mapicallo.product.domain.model.Price;
 import com.mapicallo.product.domain.ports.out.PriceRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,11 @@ public class PriceApplicationService {
         this.priceRepository = priceRepository;
     }
 
-    public Optional<Price> getPrice(Long brandId, Long productId, LocalDateTime applicationDate) {
-        return priceRepository.findPrice(brandId, productId, applicationDate);
+    public Price getPrice(Long brandId, Long productId, LocalDateTime applicationDate) {
+        return priceRepository.findPrice(brandId, productId, applicationDate)
+                .orElseThrow(() -> new PriceNotFoundException(
+                        "No se encontró un precio para el producto " + productId +
+                                " con la marca " + brandId +
+                                " en la fecha " + applicationDate));
     }
 }
