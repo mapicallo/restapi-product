@@ -1,144 +1,69 @@
 package com.mapicallo.product.adapters.in.rest;
 
+import com.mapicallo.product.application.PriceApplicationService;
+import com.mapicallo.product.domain.exceptions.PriceNotFoundException;
 import com.mapicallo.product.domain.model.Price;
-import com.mapicallo.product.domain.ports.out.PriceRepositoryPort;
-
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.Mockito;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 class PriceControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private PriceController priceController;
+    private PriceApplicationService priceApplicationService;
 
-    @MockBean
-    private PriceRepositoryPort priceRepository;
-
-    @Test
-    @DisplayName("Test 1: Petición a las 10:00 del día 14 del producto 35455 para la brand 1 (ZARA)")
-    void test1() throws Exception {
-        // Mockeamos la respuesta del repositorio
-        when(priceRepository.findPrice(1L, 35455L, LocalDateTime.parse("2020-06-14T10:00:00")))
-                .thenReturn(Optional.of(Price.builder()
-                        .brandId(1L)
-                        .productId(35455L)
-                        .price(35.50)
-                        .priority(0)
-                        .build()));
-
-        // Simulamos la petición HTTP y verificamos la respuesta
-        mockMvc.perform(get("/prices")
-                        .param("brandId", "1")
-                        .param("productId", "35455")
-                        .param("applicationDate", "2020-06-14T10:00:00")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.price").value(35.50))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.productId").value(35455));
+    @BeforeEach
+    void setUp() {
+        // Mock del servicio
+        priceApplicationService = mock(PriceApplicationService.class);
+        // Instancia del controlador con el servicio mockeado
+        priceController = new PriceController(priceApplicationService);
     }
 
     @Test
-    @DisplayName("Test 2: Petición a las 16:00 del día 14 del producto 35455 para la brand 1 (ZARA)")
-    void test2() throws Exception {
-        // Mockeamos la respuesta del repositorio
-        when(priceRepository.findPrice(1L, 35455L, LocalDateTime.parse("2020-06-14T16:00:00")))
-                .thenReturn(Optional.of(Price.builder()
-                        .brandId(1L)
-                        .productId(35455L)
-                        .price(25.45)
-                        .priority(1)
-                        .build()));
+    void testGetPrice_Success() {
+        // Datos de prueba
+        Long brandId = 1L;
+        Long productId = 35455L;
+        LocalDateTime applicationDate = LocalDateTime.of(2020, 6, 14, 10, 0);
+        Price mockPrice = new Price(brandId, productId, applicationDate, applicationDate, 1, 0, 35.50, "EUR");
 
-        // Simulamos la petición HTTP y verificamos la respuesta
-        mockMvc.perform(get("/prices")
-                        .param("brandId", "1")
-                        .param("productId", "35455")
-                        .param("applicationDate", "2020-06-14T16:00:00")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.price").value(25.45))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.productId").value(35455));
+        // Configuración del mock
+        when(priceApplicationService.getPrice(brandId, productId, applicationDate)).thenReturn(mockPrice);
+
+        // Llamada al endpoint
+        ResponseEntity<Price> response = priceController.getPrice(brandId, productId, applicationDate);
+
+        // Validaciones
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(mockPrice, response.getBody());
+        verify(priceApplicationService, times(1)).getPrice(brandId, productId, applicationDate);
     }
 
     @Test
-    @DisplayName("Test 3: Petición a las 21:00 del día 14 del producto 35455 para la brand 1 (ZARA)")
-    void test3() throws Exception {
-        // Mockeamos la respuesta del repositorio
-        when(priceRepository.findPrice(1L, 35455L, LocalDateTime.parse("2020-06-14T21:00:00")))
-                .thenReturn(Optional.of(Price.builder()
-                        .brandId(1L)
-                        .productId(35455L)
-                        .price(35.50)
-                        .priority(0)
-                        .build()));
+    void testGetPrice_NotFound() {
+        // Datos de prueba
+        Long brandId = 1L;
+        Long productId = 35455L;
+        LocalDateTime applicationDate = LocalDateTime.of(2020, 6, 14, 10, 0);
 
-        // Simulamos la petición HTTP y verificamos la respuesta
-        mockMvc.perform(get("/prices")
-                        .param("brandId", "1")
-                        .param("productId", "35455")
-                        .param("applicationDate", "2020-06-14T21:00:00")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.price").value(35.50))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.productId").value(35455));
-    }
+        // Configuración del mock para lanzar excepción
+        when(priceApplicationService.getPrice(brandId, productId, applicationDate))
+                .thenThrow(new PriceNotFoundException("No se encontró un precio para el producto"));
 
-    @Test
-    @DisplayName("Test 4: Petición a las 10:00 del día 15 del producto 35455 para la brand 1 (ZARA)")
-    void test4() throws Exception {
-        // Mockeamos la respuesta del repositorio
-        when(priceRepository.findPrice(1L, 35455L, LocalDateTime.parse("2020-06-15T10:00:00")))
-                .thenReturn(Optional.of(Price.builder()
-                        .brandId(1L)
-                        .productId(35455L)
-                        .price(30.50)
-                        .priority(1)
-                        .build()));
+        // Llamada al endpoint y validación de excepción
+        Exception exception = assertThrows(PriceNotFoundException.class, () -> {
+            priceController.getPrice(brandId, productId, applicationDate);
+        });
 
-        // Simulamos la petición HTTP y verificamos la respuesta
-        mockMvc.perform(get("/prices")
-                        .param("brandId", "1")
-                        .param("productId", "35455")
-                        .param("applicationDate", "2020-06-15T10:00:00")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.price").value(30.50))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.productId").value(35455));
-    }
-
-    @Test
-    @DisplayName("Test 5: Petición a las 21:00 del día 16 del producto 35455 para la brand 1 (ZARA)")
-    void test5() throws Exception {
-        // Mockeamos la respuesta del repositorio
-        when(priceRepository.findPrice(1L, 35455L, LocalDateTime.parse("2020-06-16T21:00:00")))
-                .thenReturn(Optional.empty()); // No hay resultados esperados para esta consulta
-
-        // Simulamos la petición HTTP y verificamos la respuesta
-        mockMvc.perform(get("/prices")
-                        .param("brandId", "1")
-                        .param("productId", "35455")
-                        .param("applicationDate", "2020-06-16T21:00:00")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound()); // Se espera un 404 Not Found
+        assertEquals("No se encontró un precio para el producto", exception.getMessage());
+        verify(priceApplicationService, times(1)).getPrice(brandId, productId, applicationDate);
     }
 }

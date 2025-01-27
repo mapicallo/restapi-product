@@ -1,6 +1,4 @@
-
 spring:
-
   application:
     name: restapi-product
 
@@ -20,30 +18,27 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        '[show_sql]': true
-        '[use_sql_comments]': false
-        '[format_sql]': true
-        '[event.merge.entity_copy_observer]': allow
+        show_sql: true
+        format_sql: true
     show-sql: true
+
   sql:
     init:
       mode: always
 
-springdoc:
+logging:
+  level:
+    root: INFO
 
+springdoc:
   title: "Product Api"
   description: "API to obtain final calculated prices of a product"
   version: "v1.0.0"
   contact-name: "Manuel Angel Picallo Pérez"
   contact-email: "mapicalloperez@hotmail.com"
-  contact-url: " "
 
   api-docs:
     path: /api-docs
-  #  packages-to-scan:
-  #  - com.mpicallo.application.rest
-  #  paths-to-match:
-  #  - /v1
+
   swagger-ui:
     path: /swagger-ui.html
-#    operations-sorter: alpha

@@ -212,3 +212,7 @@ Caused by: java.lang.AssertionError: 20480 != 16384
 	at org.h2.mvstore.RandomAccessStore.writeChunk(RandomAccessStore.java:28)
 	at org.h2.mvstore.FileStore.storeBuffer(FileStore.java:1524)
 	... 6 more
+2025-01-27 01:18:56.838217+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "select * [*]fron PRICES"
+Syntax error in SQL statement "select * [*]fron PRICES"; SQL statement:
+select * fron PRICES [42000-224]
